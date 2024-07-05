@@ -136,7 +136,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function generatePuzzle() {
         const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 0];
-        return shuffle(numbers);
+        let shuffledNumbers = shuffle(numbers);
+        while (!isSolvable(shuffledNumbers)) {
+            shuffledNumbers = shuffle(numbers);
+        }
+        return shuffledNumbers;
     }
 
     function shuffle(array) {
@@ -145,6 +149,18 @@ document.addEventListener('DOMContentLoaded', () => {
             [array[i], array[j]] = [array[j], array[i]];
         }
         return array;
+    }
+
+    function isSolvable(puzzle) {
+        let invCount = 0;
+        for (let i = 0; i < 8; i++) {
+            for (let j = i + 1; j < 9; j++) {
+                if (puzzle[i] && puzzle[j] && puzzle[i] > puzzle[j]) {
+                    invCount++;
+                }
+            }
+        }
+        return invCount % 2 === 0;
     }
 
     function createCell(num) {
