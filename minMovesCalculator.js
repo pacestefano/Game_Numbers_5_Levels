@@ -1,36 +1,60 @@
 export function calculateMinMoves(puzzle) {
-    const goal = [1, 2, 3, 4, 5, 6, 7, 8, 9]; // Stato finale obiettivo
-    const visited = new Set();
-    let minMoves = Infinity;
+    const goal = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const openSet = new Set([puzzle.toString()]);
+    const cameFrom = new Map();
+    const gScore = new Map();
+    const fScore = new Map();
 
-    function backtrack(current, moves) {
-        const currentKey = current.toString();
-        if (visited.has(currentKey)) {
-            return;
+    gScore.set(puzzle.toString(), 0);
+    fScore.set(puzzle.toString(), heuristic(puzzle, goal));
+
+    while (openSet.size > 0) {
+        let current = null;
+        let currentFScore = Infinity;
+        for (const node of openSet) {
+            const nodeFScore = fScore.get(node) || Infinity;
+            if (nodeFScore < currentFScore) {
+                currentFScore = nodeFScore;
+                current = node;
+            }
         }
-        visited.add(currentKey);
 
-        if (arraysEqual(current, goal)) {
-            minMoves = Math.min(minMoves, moves);
-            return;
+        if (current === goal.toString()) {
+            return reconstructPath(cameFrom, current).length - 1;
         }
 
-        const zeroIndex = current.indexOf(0);
-        const neighbors = getNeighbors(current, zeroIndex);
+        openSet.delete(current);
+        const currentArr = current.split(',').map(Number);
+        const neighbors = getNeighbors(currentArr);
 
         for (const neighbor of neighbors) {
-            backtrack(neighbor, moves + 1);
-        }
+            const tentativeGScore = (gScore.get(current) || Infinity) + 1;
 
-        visited.delete(currentKey);
+            if (tentativeGScore < (gScore.get(neighbor.toString()) || Infinity)) {
+                cameFrom.set(neighbor.toString(), current);
+                gScore.set(neighbor.toString(), tentativeGScore);
+                fScore.set(neighbor.toString(), tentativeGScore + heuristic(neighbor, goal));
+                openSet.add(neighbor.toString());
+            }
+        }
     }
 
-    backtrack(puzzle, 0);
-    return minMoves;
+    return Infinity; // Se non è risolvibile, restituisce infinito
 }
 
-function getNeighbors(puzzle, zeroIndex) {
+function heuristic(a, b) {
+    let distance = 0;
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] !== 0 && a[i] !== b[i]) {
+            distance++;
+        }
+    }
+    return distance;
+}
+
+function getNeighbors(puzzle) {
     const neighbors = [];
+    const zeroIndex = puzzle.indexOf(9); // Usa 9 come segnaposto
     const moves = [-1, 1, -3, 3]; // Possibili spostamenti (sinistra, destra, su, giù)
     for (const move of moves) {
         const newIndex = zeroIndex + move;
@@ -50,10 +74,11 @@ function isValidMove(zeroIndex, newIndex) {
     return true;
 }
 
-function arraysEqual(arr1, arr2) {
-    if (arr1.length !== arr2.length) return false;
-    for (let i = 0; i < arr1.length; i++) {
-        if (arr1[i] !== arr2[i]) return false;
+function reconstructPath(cameFrom, current) {
+    const totalPath = [current];
+    while (cameFrom.has(current)) {
+        current = cameFrom.get(current);
+        totalPath.push(current);
     }
-    return true;
+    return totalPath.reverse();
 }
