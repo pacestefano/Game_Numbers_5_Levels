@@ -104,14 +104,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let puzzle = generatePuzzle();
-        let minMoves = calculateMinMoves(puzzle);
+        let minMoves = calculateMinMoves([...puzzle, 0]);
         while ((minMoves !== 2 && currentLevel === 'Pro') ||
                (minMoves !== 3 && currentLevel === 'Avanzato') ||
                (minMoves !== 4 && currentLevel === 'Intermedio') ||
                (minMoves !== 5 && currentLevel === 'Base') ||
                (minMoves !== 6 && currentLevel === 'Principianti')) {
             puzzle = generatePuzzle();
-            minMoves = calculateMinMoves(puzzle);
+            minMoves = calculateMinMoves([...puzzle, 0]);
         }
 
         if (minMovesCounter) minMovesCounter.textContent = minMoves;
@@ -135,9 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function generatePuzzle() {
-        const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+        const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
         let shuffledNumbers = shuffle(numbers);
-        while (!isSolvable(shuffledNumbers)) {
+        while (!isSolvable([...shuffledNumbers, 0])) {
             shuffledNumbers = shuffle(numbers);
         }
         return shuffledNumbers;
