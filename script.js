@@ -32,9 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let totalMoves;
     let moveHistory = [];
     let gameOver = false;
-    let currentLevel = 'Base';
+    let currentLevel = 'Principianti';
 
-    const MAX_GAMES = 3;
+    const MAX_GAMES = 5;
 
     burgerMenu.addEventListener('click', () => {
         menuOptions.style.display = menuOptions.style.display === 'block' ? 'none' : 'block';
@@ -51,13 +51,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateLevelColor(level) {
         switch (level) {
-            case 'Medio':
-                levelDisplay.style.color = 'orange';
+            case 'Base':
+                levelDisplay.style.color = 'green';
+                break;
+            case 'Intermedio':
+                levelDisplay.style.color = 'blue';
                 break;
             case 'Avanzato':
+                levelDisplay.style.color = 'orange';
+                break;
+            case 'Pro':
                 levelDisplay.style.color = 'red';
                 break;
-            case 'Base':
+            case 'Principianti':
             default:
                 levelDisplay.style.color = 'black';
                 break;
@@ -97,11 +103,17 @@ document.addEventListener('DOMContentLoaded', () => {
             undoButton.style.cursor = 'not-allowed';
         }
 
-        let numbers = generateNumbers();
-        let shuffledNumbers = shuffle(numbers);
-        console.log("Generated numbers:", numbers); // Debug
+        let puzzle = generatePuzzle();
+        let minMoves = calculateMinMoves(puzzle);
+        while ((minMoves !== 2 && currentLevel === 'Pro') ||
+               (minMoves !== 3 && currentLevel === 'Avanzato') ||
+               (minMoves !== 4 && currentLevel === 'Intermedio') ||
+               (minMoves !== 5 && currentLevel === 'Base') ||
+               (minMoves !== 6 && currentLevel === 'Principianti')) {
+            puzzle = generatePuzzle();
+            minMoves = calculateMinMoves(puzzle);
+        }
 
-        const minMoves = getMinMovesForLevel(currentLevel);
         if (minMovesCounter) minMovesCounter.textContent = minMoves;
         totalMoves = minMoves;
         for (let i = 0; i < minMoves; i++) {
@@ -111,29 +123,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         for (let i = 0; i < 3; i++) {
-            createCell(shuffledNumbers[i * 3]);
+            createCell(puzzle[i * 3]);
             createOperator('+');
-            createCell(shuffledNumbers[i * 3 + 1]);
+            createCell(puzzle[i * 3 + 1]);
             createOperator('=');
-            createCell(shuffledNumbers[i * 3 + 2]);
+            createCell(puzzle[i * 3 + 2]);
         }
         console.log("Grid populated"); // Debug
 
         startTimer();
     }
 
-    function generateNumbers() {
-        let numbers = [];
-        while (numbers.length < 9) {
-            let A = Math.floor(Math.random() * 9) + 1;
-            let B = Math.floor(Math.random() * 9) + 1;
-            let C = A + B;
-            if (C <= 9) {
-                numbers.push(A, B, C);
-            }
-        }
-        console.log("Generated numbers:", numbers); // Debug
-        return numbers.slice(0, 9);
+    function generatePuzzle() {
+        const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+        return shuffle(numbers);
     }
 
     function shuffle(array) {
@@ -424,26 +427,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getMinMovesForLevel(level) {
         switch (level) {
-            case 'Medio':
-                return 3;
-            case 'Avanzato':
+            case 'Pro':
                 return 2;
-            case 'Base':
-            default:
+            case 'Avanzato':
+                return 3;
+            case 'Intermedio':
                 return 4;
+            case 'Base':
+                return 5;
+            case 'Principianti':
+            default:
+                return 6;
         }
     }
 
     function getNextLevel(currentLevel) {
         switch (currentLevel) {
+            case 'Principianti':
+                return 'Base';
             case 'Base':
-                return 'Medio';
-            case 'Medio':
+                return 'Intermedio';
+            case 'Intermedio':
                 return 'Avanzato';
             case 'Avanzato':
-                return 'Base';
+                return 'Pro';
+            case 'Pro':
+                return 'Principianti';
             default:
-                return 'Base';
+                return 'Principianti';
         }
     }
 
@@ -451,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
     }, { passive: false });
 
-    // Iniziare il gioco con il livello Base
+    // Iniziare il gioco con il livello Principianti
     updateLevelColor(currentLevel);
     startGame();
 });
